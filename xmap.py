@@ -48,33 +48,35 @@ def handle_result(args: List[str], answer: str, target_window_id: int, boss: Bos
     if w is None:
         return
 
+    _, shortcut, cmd, *cmd_args = args
+
     if not w.screen.is_main_linebuf():
-        send_to_window(w, args[1])
+        send_to_window(w, shortcut)
         return
 
-    if args[2] == "combine":
+    if cmd == "combine":
         # combine need more stuff
         if version < (0, 24):
             from kitty.options.utils import combine_parse
-            _, args = combine_parse(args[2], " ".join(args[3:]))
+            _, args = combine_parse(cmd, " ".join(cmd_args))
             return boss.combine(*args)
         else:
-            return boss.combine(" ".join(args[2:]))
+            return boss.combine("{} {}".format(cmd, " ".join(cmd_args)))
 
     # Send the command to the window in normal screen.
     for o in [boss, w, w.tabref()]:
-        command = getattr(o, args[2], None)
+        command = getattr(o, cmd, None)
         if command:
             break
     else:
-        w.write_to_child("Invalid command '{}'".format(args[2]))
+        w.write_to_child("Invalid command '{}'".format(cmd))
         return
 
     try:
-        if len(args) > 3:
-            command(*args[3:])
+        if len(cmd_args) > 0:
+            command(*cmd_args)
         else:
             command()
     except Exception as e:
-        w.write_to_child("Error in command {} : {}".format(args[1], e))
+        w.write_to_child("Error in command {} : {}".format(cmd, e))
 
