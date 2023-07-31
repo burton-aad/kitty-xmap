@@ -12,6 +12,7 @@ Inspired by the smart_scroll kitten.
 from typing import List, Tuple
 from kitty.boss import Boss
 from kitty.window import Window
+from kitty.constants import version
 
 
 def main(args: List[str]) -> str:
@@ -53,9 +54,12 @@ def handle_result(args: List[str], answer: str, target_window_id: int, boss: Bos
 
     if args[2] == "combine":
         # combine need more stuff
-        from kitty.options.utils import combine_parse
-        _, args = combine_parse(args[2], " ".join(args[3:]))
-        return boss.combine(*args)
+        if version < (0, 24):
+            from kitty.options.utils import combine_parse
+            _, args = combine_parse(args[2], " ".join(args[3:]))
+            return boss.combine(*args)
+        else:
+            return boss.combine(" ".join(args[2:]))
 
     # Send the command to the window in normal screen.
     for o in [boss, w, w.tabref()]:
