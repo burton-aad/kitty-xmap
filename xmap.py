@@ -58,8 +58,11 @@ def handle_result(args: List[str], answer: str, target_window_id: int, boss: Bos
         return boss.combine(*args)
 
     # Send the command to the window in normal screen.
-    command = getattr(boss, args[2], None) or getattr(w, args[2], None)
-    if command is None:
+    for o in [boss, w, w.tabref()]:
+        command = getattr(o, args[2], None)
+        if command:
+            break
+    else:
         w.write_to_child("Invalid command '{}'".format(args[2]))
         return
 
