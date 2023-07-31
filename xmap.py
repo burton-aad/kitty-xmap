@@ -65,7 +65,10 @@ def handle_result(args: List[str], answer: str, target_window_id: int, boss: Bos
     if cmd == "combine":
         # combine need more stuff
         if version < (0, 24):
-            from kitty.options.utils import combine_parse
+            if version < (0, 21):
+                from kitty.config import combine_parse
+            else:
+                from kitty.options.utils import combine_parse
             _, args = combine_parse(cmd, " ".join(cmd_args))
             return boss.combine(*args)
         else:
