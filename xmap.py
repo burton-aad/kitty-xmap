@@ -39,8 +39,16 @@ def send_to_window(w: Window, shortcut: str) -> None:
         sequence = w.encoded_key(window_system_event)
         w.write_to_child(sequence)
 
+try:
+    from kittens.tui.handler import result_handler
+except ImportError:
+    # for kitty < 0.17.0
+    def result_handler(no_ui):
+        def wrapper(func):
+            func.no_ui = no_ui
+            return func
+        return wrapper
 
-from kittens.tui.handler import result_handler
 @result_handler(no_ui=True)
 def handle_result(args: List[str], answer: str, target_window_id: int, boss: Boss) -> None:
     # get the kitty window into which to paste answer
