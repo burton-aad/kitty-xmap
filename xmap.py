@@ -22,6 +22,9 @@ def send_to_window(w: Window, shortcut: str) -> None:
     """Simulate press/release of a shortcut into the window"""
     import kitty.key_encoding as ke
     mods, key = ke.parse_shortcut(shortcut)
+    if "kitty_mod" in shortcut:
+        import kitty.fast_data_types as fdtypes
+        mods |= fdtypes.get_options().kitty_mod
     shift, alt, ctrl, super, hyper, meta, caps_lock, num_lock = (
         bool(mods & bit) for bit in (
            ke.SHIFT, ke.ALT, ke.CTRL, ke.SUPER,
