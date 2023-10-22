@@ -30,7 +30,7 @@ def main(args: List[str]) -> str:
     pass
 
 
-def send_to_window(w: Window, shortcut: str) -> None:
+def _send_to_window_0_20(w: Window, shortcut: str) -> None:
     """Simulate press/release of a shortcut into the window"""
     import kitty.key_encoding as ke
     mods, key = ke.parse_shortcut(shortcut)
@@ -49,6 +49,26 @@ def send_to_window(w: Window, shortcut: str) -> None:
         window_system_event = key_event.as_window_system_event()
         sequence = w.encoded_key(window_system_event)
         w.write_to_child(sequence)
+
+def _send_to_window_old(w: Window, shortcut: str) -> None:
+    """Simulate press/release of a shortcut into the window
+
+    Version before 0.20.0
+    """
+    import kitty.key_encoding as ke
+    from kitty.config import parse_shortcut
+    import kitty.fast_data_types as fdtypes
+    mods, _, key = parse_shortcut(shortcut)
+    for action in [ke.PRESS, ke.RELEASE]:
+        key_event = ke.KeyEvent(type=action, mods=mods, key=key)
+        w.write_to_child(
+            fdtypes.key_to_bytes(
+                key, w.screen.cursor_key_mode, w.screen.extended_keyboard, mods, action))
+
+if version < (0, 20):
+    send_to_window = _send_to_window_old
+else:
+    send_to_window = _send_to_window_0_20
 
 
 @result_handler(no_ui=True)
