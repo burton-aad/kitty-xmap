@@ -96,20 +96,18 @@ def handle_result(args: List[str], answer: str, target_window_id: int, boss: Bos
         else:
             return boss.combine("{} {}".format(cmd, " ".join(cmd_args)))
 
-    # Send the command to the window in normal screen.
-    for o in [boss, w, w.tabref()]:
-        command = getattr(o, cmd, None)
-        if command:
-            break
-    else:
-        w.write_to_child("Invalid command '{}'".format(cmd))
-        return
 
-    try:
-        if len(cmd_args) > 0:
+    if version < (0, 21):
+        # Send the command to the window in normal screen.
+        command = getattr(boss, cmd, getattr(w, cmd, getattr(w.tabref(), cmd, None)))
+        if not command:
+            w.write_to_child("Invalid command '{}'".format(cmd))
+            return
+        try:
             command(*cmd_args)
-        else:
-            command()
-    except Exception as e:
-        w.write_to_child("Error in command {} : {}".format(cmd, e))
-
+        except Exception as e:
+            w.write_to_child("Error in command {} : {}".format(cmd, e))
+    else:
+        from kitty.options.utils import parse_key_action
+        boss.dispatch_action(parse_key_action("{} {}".format(cmd, " ".join(cmd_args))),
+                             window_for_dispatch = w)
